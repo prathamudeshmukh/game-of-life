@@ -7,11 +7,14 @@ class App extends Component {
         super(props);
         this.state = {
             world : [],
-            liveCells : [],
+            liveCells : 0,
             generationsToSimulate : 100,
             currentGeneration:1,
-            life:null
+            life:null,
+            seeder:null
         };
+        this.rows = 30;
+        this.cols = 100;
         this.initializeWorld = this.initializeWorld.bind(this);
         this.startGame = this.startGame.bind(this);
         this.getLiveNeighbours = this.getLiveNeighbours.bind(this);
@@ -19,6 +22,9 @@ class App extends Component {
         this.stopGame = this.stopGame.bind(this);
         this.cloneWorld = this.cloneWorld.bind(this);
         this.livenUp = this.livenUp.bind(this);
+        this.getRandomNumberFromRange = this.getRandomNumberFromRange.bind(this);
+        this.randomSeed = this.randomSeed.bind(this);
+        this.stopSeeder = this.stopSeeder.bind(this);
     }
 
     componentDidMount(){
@@ -27,15 +33,11 @@ class App extends Component {
 
     initializeWorld(){
         const world = this.cloneWorld();
-        for(let i = 0 ; i < 30 ; i++){
+        for(let i = 0 ; i < this.rows ; i++){
             const worldRow = [];
-            for(let j = 0 ; j < 100 ; j++){
+            for(let j = 0 ; j < this.cols ; j++){
                 const cellAddress = i+","+j;
-                if(this.state.liveCells.indexOf(cellAddress) >= 0){
-                    worldRow[j] = true;
-                }else{
-                    worldRow[j] = false;
-                }
+                worldRow[j] = false;
             }
             world[i] = worldRow
         }
@@ -46,29 +48,54 @@ class App extends Component {
         return JSON.parse(JSON.stringify(this.state.world));
     }
 
+    randomSeed(){
+        const maxNumberOfLiveCellsForASeedToGenerate = 50;
+        const minNumberOfLiveCellsForASeedToGenerate = 10;
+        const numberOfSeedCells = this.getRandomNumberFromRange(minNumberOfLiveCellsForASeedToGenerate, maxNumberOfLiveCellsForASeedToGenerate);
+        console.log("numberOfSeedCells"+numberOfSeedCells);
+            const seeder = setInterval(()=> {
+                let coords = this.getRandomNumberFromRange(10, this.rows - 10) + "," + this.getRandomNumberFromRange(40, this.cols - 40)
+                let event = {target: {id: coords}};
+                this.livenUp(event)
+            },50);
+        this.setState({seeder :seeder});
+    }
+
+    getRandomNumberFromRange(min, max){
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
     startGame(){
         const life = setInterval(()=>{
             const localWorld = this.cloneWorld();
-            const liveCells = this.state.liveCells.slice(0);
+            let liveCells = 0;
 
             for (let i = 0; i < localWorld.length; i++) {
                 for (let j = 0; j < localWorld[i].length; j++) {
                     const liveNeighbours = this.getLiveNeighbours(this.state.world,[i, j]);
                     if (localWorld[i][j]) { //liveCell
+                        liveCells ++;
                         if (liveNeighbours < 2 || liveNeighbours > 3) {
                             localWorld[i][j] = false;
+                            liveCells --;
                         }
                     } else {
                         if (liveNeighbours == 3) {
                             localWorld[i][j] = true;
+                            liveCells ++;
                         }
                     }
                 }
             }
-            this.setState({world:localWorld, currentGeneration: this.state.currentGeneration + 1})
+            this.setState({world:localWorld, currentGeneration: this.state.currentGeneration + 1,liveCells : liveCells})
         },1000);
         this.setState({life :life});
 
+    }
+
+    stopSeeder(){
+        clearInterval(this.state.seeder);
+        this.setState({seeder:null});
     }
 
     stopGame(){
@@ -82,13 +109,12 @@ class App extends Component {
 
     livenUp(event){
         let coord = event.target.id;
-        const liveCells = this.state.liveCells.slice(0);
-        liveCells.push(coord);
+        console.log("coord:"+coord)
         const localWorld = this.cloneWorld();
         const x = coord.split(",")[0];
         const y = coord.split(",")[1];
         localWorld[x][y] = !localWorld[x][y];
-        this.setState({world:localWorld,liveCells:liveCells});
+        this.setState({world:localWorld,liveCells:this.state.liveCells + 1});
     }
 
     getLiveNeighbours(localWorld,cellAddress){
@@ -151,8 +177,11 @@ class App extends Component {
               </div>
               <ul className={"currentState"}>
                   <li>Generation : {this.state.currentGeneration}</li>
-                  <li><button disabled={this.state.life ? true : false} onClick={this.startGame}>Start</button></li>
+                  <li>Population : {this.state.liveCells}</li>
+
+                  <li><button disabled={this.state.life || this.state.seeder ? true : false} onClick={this.startGame}>Start simulation</button></li>
                   <li><button disabled={this.state.life ? false : true} onClick={this.stopGame}>Pause</button></li>
+                  <li><button disabled={this.state.life ? true : false} onClick={this.state.seeder ? this.stopSeeder : this.randomSeed}>{this.state.seeder?"Stop generating":"Generate random seed"}</button></li>
               </ul>
 
               <table >
