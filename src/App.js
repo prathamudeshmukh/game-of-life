@@ -27,7 +27,7 @@ class App extends Component {
 
     initializeWorld(){
         const world = this.cloneWorld();
-        for(let i = 0 ; i < 50 ; i++){
+        for(let i = 0 ; i < 30 ; i++){
             const worldRow = [];
             for(let j = 0 ; j < 100 ; j++){
                 const cellAddress = i+","+j;
@@ -97,9 +97,6 @@ class App extends Component {
         const y = cellAddress[1];
         const xsize = localWorld.length;
         const ysize = localWorld[0].length;
-        if(x == 2 && y == 3){
-            // debugger;
-        }
         if (localWorld[this.mod(x+1,xsize)] && localWorld[this.mod(x+1,xsize)][y]){
             nc++;
         }
@@ -130,7 +127,34 @@ class App extends Component {
     render() {
         return (
           <div className="App">
-              <div>Generation : {this.state.currentGeneration}</div>
+              <div className={"textInfo"}>
+                  <b>Conway's Game of Life,<br/> also known as the Game of Life or simply Life, is a cellular automaton
+                      devised by the British mathematician John Horton Conway in 1970.
+                      It is the best-known example of a cellular automaton.</b>
+                  <br/><br/>
+                  <div>The universe of the Game of Life is an infinite two-dimensional orthogonal grid of square cells,
+                      each of which is in one of two possible states, live or dead. Every cell interacts with its eight
+                      neighbours, which are the cells that are directly horizontally, vertically, or diagonally adjacent.
+                      At each step in time, the following transitions occur:
+                      <ul>
+                        <li>Any live cell with fewer than two live neighbours dies (referred to as underpopulation or exposure).</li>
+                        <li>Any live cell with more than three live neighbours dies (referred to as overpopulation or overcrowding).</li>
+                        <li>Any live cell with two or three live neighbours lives, unchanged, to the next generation.</li>
+                        <li>Any dead cell with exactly three live neighbours will come to life.</li>
+                      </ul>
+                      The initial pattern constitutes the 'seed' of the system.
+                      The first generation is created by applying the above rules simultaneously to every cell in the seed — births
+                      and deaths happen simultaneously, and the discrete moment at which this happens is sometimes called a tick.
+                      (In other words, each generation is a pure function of the one before.)
+                      The rules continue to be applied repeatedly to create further generations.
+                  </div>
+              </div>
+              <ul className={"currentState"}>
+                  <li>Generation : {this.state.currentGeneration}</li>
+                  <li><button disabled={this.state.life ? true : false} onClick={this.startGame}>Start</button></li>
+                  <li><button disabled={this.state.life ? false : true} onClick={this.stopGame}>Pause</button></li>
+              </ul>
+
               <table >
                   {(() => {
                       return this.state.world.map((row,i) => {
@@ -148,8 +172,6 @@ class App extends Component {
                       })
                   })()}
               </table>
-              <button onClick={this.startGame}>Start</button>
-              <button onClick={this.stopGame}>Pause</button>
           </div>
         );
     }

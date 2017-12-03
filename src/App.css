@@ -1,5 +1,18 @@
 .App {
-  text-align: center;
+  padding: 5px ;
+}
+
+.currentState{
+  column: "2";
+}
+
+.currentState li{
+  display: inline-block;
+  margin:5px;
+}
+
+.textInfo{
+  padding: 5px ;
 }
 
 .App-logo {
